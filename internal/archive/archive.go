@@ -34,11 +34,16 @@ func readAsTar(src, basePath string, uid, gid int, mode int64, writeFn func(tw *
 	go func() {
 		var err error
 		defer func() {
-			w.CloseWithError(err)
+			_ = w.CloseWithError(err)
 		}()
 
 		tw := tar.NewWriter(w)
-		defer tw.Close()
+		defer func() {
+			// only close if no errors have occurred
+			if err == nil {
+				_ = tw.Close()
+			}
+		}()
 
 		err = writeFn(tw, src, basePath, uid, gid, mode)
 	}()
