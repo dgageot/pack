@@ -51,16 +51,18 @@ func NewLifecycle(docker *client.Client, logger logging.Logger) *Lifecycle {
 }
 
 type LifecycleOptions struct {
-	AppPath    string
-	Image      name.Reference
-	Builder    *builder.Builder
-	RunImage   string
-	ClearCache bool
-	Publish    bool
-	HTTPProxy  string
-	HTTPSProxy string
-	NoProxy    string
-	Network    string
+	AppPath         string
+	Image           name.Reference
+	Builder         *builder.Builder
+	RunImage        string
+	ClearCache      bool
+	Publish         bool
+	HTTPProxy       string
+	HTTPSProxy      string
+	NoProxy         string
+	Network         string
+	BuildCacheName  string
+	LaunchCacheName string
 }
 
 // CombinedExporterCacher returns true if the lifecycle contains combined exporter/cacher phases and reversed analyzer/restorer phases.
@@ -72,8 +74,20 @@ func (l *Lifecycle) Execute(ctx context.Context, opts LifecycleOptions) error {
 	l.Setup(opts)
 	defer l.Cleanup()
 
-	buildCache := cache.NewVolumeCache(opts.Image, "build", l.docker)
-	launchCache := cache.NewVolumeCache(opts.Image, "launch", l.docker)
+	var buildCache *cache.VolumeCache
+	if opts.BuildCacheName != "" {
+		buildCache = cache.NewVolumeCacheFixed(opts.BuildCacheName, "build", l.docker)
+	} else {
+		buildCache = cache.NewVolumeCache(opts.Image, "build", l.docker)
+	}
+
+	var launchCache *cache.VolumeCache
+	if opts.LaunchCacheName != "" {
+		launchCache = cache.NewVolumeCacheFixed(opts.LaunchCacheName, "launch", l.docker)
+	} else {
+		launchCache = cache.NewVolumeCache(opts.Image, "launch", l.docker)
+	}
+
 	l.logger.Debugf("Using build cache volume %s", style.Symbol(buildCache.Name()))
 
 	if opts.ClearCache {

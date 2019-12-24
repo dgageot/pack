@@ -22,6 +22,13 @@ func NewVolumeCache(imageRef name.Reference, suffix string, dockerClient *client
 	}
 }
 
+func NewVolumeCacheFixed(name, suffix string, dockerClient *client.Client) *VolumeCache {
+	return &VolumeCache{
+		volume: fmt.Sprintf("pack-cache-%x.%s", name, suffix),
+		docker: dockerClient,
+	}
+}
+
 func (c *VolumeCache) Name() string {
 	return c.volume
 }

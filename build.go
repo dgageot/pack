@@ -44,6 +44,8 @@ type BuildOptions struct {
 	Buildpacks        []string
 	ProxyConfig       *ProxyConfig // defaults to  environment proxy vars
 	ContainerConfig   ContainerConfig
+	BuildCacheName    string
+	LaunchCacheName   string
 }
 
 type ProxyConfig struct {
@@ -125,16 +127,18 @@ func (c *Client) Build(ctx context.Context, opts BuildOptions) error {
 	}
 
 	return c.lifecycle.Execute(ctx, build.LifecycleOptions{
-		AppPath:    appPath,
-		Image:      imageRef,
-		Builder:    ephemeralBuilder,
-		RunImage:   runImageName,
-		ClearCache: opts.ClearCache,
-		Publish:    opts.Publish,
-		HTTPProxy:  proxyConfig.HTTPProxy,
-		HTTPSProxy: proxyConfig.HTTPSProxy,
-		NoProxy:    proxyConfig.NoProxy,
-		Network:    opts.ContainerConfig.Network,
+		AppPath:         appPath,
+		Image:           imageRef,
+		Builder:         ephemeralBuilder,
+		RunImage:        runImageName,
+		ClearCache:      opts.ClearCache,
+		Publish:         opts.Publish,
+		HTTPProxy:       proxyConfig.HTTPProxy,
+		HTTPSProxy:      proxyConfig.HTTPSProxy,
+		NoProxy:         proxyConfig.NoProxy,
+		Network:         opts.ContainerConfig.Network,
+		BuildCacheName:  opts.BuildCacheName,
+		LaunchCacheName: opts.LaunchCacheName,
 	})
 }
 
